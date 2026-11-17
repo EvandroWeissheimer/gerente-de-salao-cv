@@ -1,0 +1,7 @@
+mesa,evento,tempo
+Mesa 1,OCUPOU,00:05
+Mesa 1,DESOCUPOU,00:40
+Mesa 1,LIBEROU,01:08
+Mesa 2,OCUPOU,00:15
+Mesa 2,DESOCUPOU,00:50
+Mesa 2,LIBEROU,00:50

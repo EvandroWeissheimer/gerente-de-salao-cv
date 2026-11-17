@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+# pesos do YOLO são baixados automaticamente
+*.pt
+# resultados gerados
+saida/*
+!saida/.gitkeep
+# vídeos grandes (coloque links no README se não couberem no GitHub)
+videos/*.mp4
+videos/*.avi

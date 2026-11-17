@@ -1,0 +1,5 @@
+ultralytics>=8.3.0     # YOLO (detecção de pessoas) + ByteTrack; instala também o PyTorch
+opencv-python>=4.8     # captura de vídeo, processamento de imagem e interface
+numpy>=1.24
+lap>=0.5.12            # usado pelo rastreamento (--rastrear)
+pytest>=7.0            # testes automatizados

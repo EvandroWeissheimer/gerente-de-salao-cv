@@ -1,0 +1,64 @@
+{
+  "referencia": null,
+  "mesas": [
+    {
+      "id": 1,
+      "nome": "Mesa 1",
+      "poligono": [
+        [
+          0.12,
+          0.29
+        ],
+        [
+          0.43,
+          0.29
+        ],
+        [
+          0.43,
+          0.78
+        ],
+        [
+          0.12,
+          0.78
+        ]
+      ]
+    },
+    {
+      "id": 2,
+      "nome": "Mesa 2",
+      "poligono": [
+        [
+          0.57,
+          0.29
+        ],
+        [
+          0.88,
+          0.29
+        ],
+        [
+          0.88,
+          0.78
+        ],
+        [
+          0.57,
+          0.78
+        ]
+      ]
+    }
+  ],
+  "parametros": {
+    "confianca": 0.35,
+    "sobreposicao_minima": 0.3,
+    "tempo_confirmar_ocupacao": 3.0,
+    "tempo_confirmar_saida": 10.0,
+    "tempo_confirmar_limpa": 3.0,
+    "tempo_presenca_reocupar": 30.0,
+    "alerta_nova_ocupacao": 60.0,
+    "alerta_permanencia": 3600.0,
+    "alerta_limpeza": 120.0,
+    "fator_area_limpeza": 0.6,
+    "limiar_pixel": 35,
+    "limiar_sujeira": 0.06,
+    "taxa_atualizacao_referencia": 0.01
+  }
+}
