@@ -34,7 +34,7 @@ O sistema lê o vídeo da câmera e, para cada quadro:
 | **OCUPADA** | 🟥 vermelho | pessoas na mesa por pelo menos 3 s |
 | **AGUARDANDO LIMPEZA** | 🟨 amarelo | clientes saíram (ninguém por 10 s) e a mesa ainda não voltou a parecer limpa |
 
-**Alertas:** `NOVA: ATENDER` nos primeiros 60 s de uma ocupação (avisa o garçom que chegou cliente), `PERMANENCIA LONGA` e `LIMPAR!` quando a mesa espera limpeza há muito tempo.
+**Alertas:** `Cliente novo: atender` nos primeiros 60 s de uma ocupação (avisa o garçom que chegou cliente), `Permanência longa` e `Limpeza atrasada` quando a mesa espera limpeza há muito tempo.
 
 **Indicadores gerados:** número de ocupações (giro) por mesa, tempo médio de ocupação, tempo médio até a mesa ser liberada e taxa de ocupação, que hoje o restaurante não mede.
 
@@ -90,29 +90,41 @@ stateDiagram-v2
 │   └── relatorio.py      # CSV de eventos e resumo
 ├── config/               # arquivos de mesas (JSON) e imagens de referência
 ├── testes/               # gabaritos dos vídeos de teste
+│   └── mixkit/           # mesas e gabarito do teste com vídeo público
 ├── tests/                # testes automatizados (pytest)
-├── videos/               # vídeos de entrada
-└── saida/                # eventos, resumos e vídeos gerados
+├── videos/               # vídeos de entrada (não versionados)
+└── saida/                # eventos, resumos e vídeos gerados (não versionados)
 ```
 
 ## 5. Instalação
 
-Requisitos: **Python 3.10 ou superior**. Funciona em CPU; GPU é opcional.
+Requisitos: **Python 3.10 ou superior** (testado com 3.13). Funciona em CPU; GPU é opcional.
 
 ```bash
-git clone <url-do-repositorio>
-cd <pasta-do-repositorio>
-
-python -m venv .venv
-# Windows:
-.venv\Scripts\activate
-# Linux/macOS:
-source .venv/bin/activate
-
-pip install -r requirements.txt
+git clone https://github.com/EvandroWeissheimer/gerente-de-salao-cv.git
+cd gerente-de-salao-cv
 ```
 
-Na primeira execução, o Ultralytics baixa automaticamente os pesos `yolo11n.pt` (~5 MB).
+**Windows (PowerShell)**
+
+```powershell
+py -m venv .venv
+.venv\Scripts\python.exe -m pip install -r requirements.txt
+.venv\Scripts\python.exe -m pytest
+```
+
+> Para não precisar ativar o ambiente (o PowerShell costuma bloquear o script `activate`), os comandos chamam o Python do `.venv` direto. Nos exemplos abaixo, troque `python` por `.venv\Scripts\python.exe`.
+
+**Linux / macOS**
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+python -m pytest
+```
+
+A instalação baixa o PyTorch (alguns minutos). Na primeira execução, o Ultralytics baixa automaticamente os pesos `yolo11n.pt` (~5 MB).
 
 ## 6. Como usar
 
@@ -137,7 +149,7 @@ python monitorar.py --fonte videos/salao.mp4 --mesas config/mesas.json
 # webcam
 python monitorar.py --fonte 0 --mesas config/mesas.json
 
-# câmera IP / CFTV
+# câmera IP / CFTV (não publique a URL com senha no GitHub)
 python monitorar.py --fonte "rtsp://usuario:senha@192.168.0.10:554/stream1" --mesas config/mesas.json
 
 # gerar vídeo para a apresentação, com pessoas anonimizadas e visualização do processamento
@@ -243,6 +255,8 @@ O que esse teste ensinou:
 - Aumentar a entrada do YOLO de 640 para 960 não mudou os eventos e deixou o processamento quase 2× mais lento.
 
 ### 9.2 Testes do grupo
+
+Os vídeos gravados pelo grupo não ficam no repositório por causa do tamanho. Baixe-os em _(colocar o link do Google Drive aqui)_ e coloque na pasta `videos/`. As configurações das mesas e os gabaritos de cada vídeo ficam em `testes/`.
 
 > _Preencher com os vídeos gravados pelo grupo: situação testada, resultado esperado × obtido e a saída do `avaliar.py`._
 

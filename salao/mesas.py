@@ -121,11 +121,11 @@ class Mesa:
         """Texto de alerta para o painel, ou None."""
         p, dt = self.params, self.tempo_no_estado(t)
         if self.estado == Estado.OCUPADA and dt < p.alerta_nova_ocupacao:
-            return "NOVA: ATENDER"
+            return "Cliente novo: atender"
         if self.estado == Estado.OCUPADA and dt >= p.alerta_permanencia:
-            return "PERMANENCIA LONGA"
+            return "Permanência longa"
         if self.estado == Estado.LIMPEZA and dt >= p.alerta_limpeza:
-            return "LIMPAR!"
+            return "Limpeza atrasada"
         return None
 
     # ------------------------------------------------------------------

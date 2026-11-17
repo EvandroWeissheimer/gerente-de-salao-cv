@@ -108,9 +108,9 @@ def test_alertas():
                    tempo_confirmar_saida=5, alerta_limpeza=120)
     mesa = Mesa(1, "Mesa 1", QUADRADO, p)
     simular(mesa, 0, 2, pessoas=1)
-    assert mesa.alerta(10) == "NOVA: ATENDER"
+    assert mesa.alerta(10) == "Cliente novo: atender"
     assert mesa.alerta(100) is None
-    assert mesa.alerta(700) == "PERMANENCIA LONGA"
+    assert mesa.alerta(700) == "Permanência longa"
 
 
 def test_associacao_escolhe_mesa_com_maior_sobreposicao():
