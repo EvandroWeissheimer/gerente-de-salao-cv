@@ -25,6 +25,10 @@ class Parametros:
 
 
     # --- Filtros de tempo (evitam que o estado "pisque") ---
+    tolerancia_falha_deteccao: float = 1.5
+    """O detector às vezes perde uma pessoa por alguns quadros (oclusão,
+    ângulo). Falhas mais curtas que isso não interrompem a presença."""
+
     tempo_confirmar_ocupacao: float = 3.0
     """Tempo com pessoa presente para considerar a mesa OCUPADA."""
 

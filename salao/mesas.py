@@ -52,6 +52,8 @@ class Mesa:
     # Controle interno dos filtros de tempo
     _presenca_desde: float | None = None
     _ausencia_desde: float | None = None
+    _ultima_deteccao: float | None = None
+    _falha_desde: float | None = None
     _limpa_desde: float | None = None
 
     # ------------------------------------------------------------------
@@ -66,16 +68,28 @@ class Mesa:
         eventos: list[Evento] = []
         self.pessoas = n_pessoas
 
-        # Contadores de presença/ausência contínuas
+        # Contadores de presença/ausência contínuas. Uma falha do detector
+        # mais curta que `tolerancia_falha_deteccao` não conta como ausência.
         if n_pessoas > 0:
+            if (self._ultima_deteccao is None
+                    or t - self._ultima_deteccao > p.tolerancia_falha_deteccao):
+                self._presenca_desde = t          # nova presença
+            self._ultima_deteccao = t
+            self._falha_desde = None
             self._ausencia_desde = None
-            if self._presenca_desde is None:
-                self._presenca_desde = t
         else:
-            self._presenca_desde = None
-            if self._ausencia_desde is None:
-                self._ausencia_desde = t
-        presenca = t - self._presenca_desde if self._presenca_desde is not None else 0.0
+            if self._falha_desde is None:
+                self._falha_desde = t             # primeiro quadro sem ninguém
+            if (self._ultima_deteccao is not None
+                    and t - self._ultima_deteccao <= p.tolerancia_falha_deteccao):
+                pass                              # falha curta: segue presente
+            else:
+                self._presenca_desde = None
+                if self._ausencia_desde is None:
+                    self._ausencia_desde = self._falha_desde  # saiu quando parou de ser visto
+        presente = self._presenca_desde is not None and self._ausencia_desde is None
+        # a presença só "cresce" até a última vez que alguém foi visto
+        presenca = self._ultima_deteccao - self._presenca_desde if presente else 0.0
         ausencia = t - self._ausencia_desde if self._ausencia_desde is not None else 0.0
 
         if self.estado == Estado.LIVRE:
@@ -98,7 +112,7 @@ class Mesa:
                 # novos clientes sentaram na mesa sem ela ter sido liberada.
                 self._mudar(Estado.OCUPADA, self._presenca_desde)
                 eventos.append(Evento(self.desde, self.nome, "OCUPOU", "sem limpeza detectada"))
-            elif n_pessoas == 0 and sujeira is not None and sujeira <= p.limiar_sujeira:
+            elif not presente and sujeira is not None and sujeira <= p.limiar_sujeira:
                 if self._limpa_desde is None:
                     self._limpa_desde = t
                 if t - self._limpa_desde >= p.tempo_confirmar_limpa:

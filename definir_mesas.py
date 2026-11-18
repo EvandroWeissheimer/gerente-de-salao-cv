@@ -27,6 +27,7 @@ import numpy as np
 
 from salao.config import ConfigMesa, Parametros, carregar_config, salvar_config
 from salao.janela import maximizar
+from salao.video import redimensionar
 
 JANELA = "Definir mesas"
 AJUDA = ["Clique: ponto | Dir.: desfaz ponto | ENTER/n: fecha mesa",
@@ -37,7 +38,7 @@ def main() -> None:
     ap = argparse.ArgumentParser(description="Desenha as áreas das mesas")
     ap.add_argument("--fonte", required=True, help="vídeo, índice da webcam (0) ou URL RTSP")
     ap.add_argument("--saida", default="config/mesas.json")
-    ap.add_argument("--largura", type=int, default=1280, help="mesma largura usada em monitorar.py")
+    ap.add_argument("--largura", type=int, default=1280, help="mesmo valor usado em monitorar.py (maior lado do quadro)")
     args = ap.parse_args()
 
     captura = cv2.VideoCapture(int(args.fonte) if args.fonte.isdigit() else args.fonte)
@@ -48,10 +49,7 @@ def main() -> None:
         ok, q = captura.read()
         if not ok:
             return None
-        if args.largura and q.shape[1] != args.largura:
-            escala = args.largura / q.shape[1]
-            q = cv2.resize(q, (args.largura, round(q.shape[0] * escala)), interpolation=cv2.INTER_AREA)
-        return q
+        return redimensionar(q, args.largura)
 
     quadro = ler_quadro()
     if quadro is None:

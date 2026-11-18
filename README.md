@@ -4,8 +4,6 @@ Protótipo de **visão computacional** que usa a câmera de segurança de um res
 
 Trabalho da disciplina **Robótica e Visão Computacional**, Ciência da Computação, Unochapecó, 2026/2, Prof. Wagner Titon.
 
-> 🎥 **Vídeo de apresentação:** _(colocar o link do YouTube aqui)_
-
 ---
 
 ## 1. O problema
@@ -88,10 +86,11 @@ stateDiagram-v2
 │   ├── limpeza.py        # verificação de limpeza (processamento de imagem)
 │   ├── painel.py         # desenho das mesas e do painel
 │   ├── relatorio.py      # CSV de eventos e resumo
-│   └── janela.py         # janela maximizada / tela cheia
+│   ├── janela.py         # janela maximizada / tela cheia
+│   └── video.py          # redimensionamento comum aos scripts
 ├── config/               # arquivos de mesas (JSON) e imagens de referência
 ├── testes/               # gabaritos dos vídeos de teste
-│   └── mixkit/           # mesas e gabarito do teste com vídeo público
+│   └── <video>/          # mesas.json e gabarito.csv de cada vídeo de teste
 ├── tests/                # testes automatizados (pytest)
 ├── videos/               # vídeos de entrada (não versionados)
 └── saida/                # eventos, resumos e vídeos gerados (não versionados)
@@ -113,8 +112,6 @@ py -m venv .venv
 .venv\Scripts\python.exe -m pip install -r requirements.txt
 .venv\Scripts\python.exe -m pytest
 ```
-
-> Para não precisar ativar o ambiente (o PowerShell costuma bloquear o script `activate`), os comandos chamam o Python do `.venv` direto. Nos exemplos abaixo, troque `python` por `.venv\Scripts\python.exe`.
 
 **Linux / macOS**
 
@@ -169,7 +166,7 @@ python monitorar.py --fonte videos/salao.mp4 --mesas config/mesas.json --salvar 
 |---|---|---|
 | `--modelo` | `yolo11n.pt` | `yolo11s.pt` é mais preciso e mais lento |
 | `--pular N` | 1 | roda o YOLO a cada N quadros (use 2–3 em notebook fraco) |
-| `--largura` | 1280 | largura de processamento (use a mesma no `definir_mesas.py`) |
+| `--largura` | 1280 | maior lado do quadro processado: a largura, ou a altura em vídeo vertical (use o mesmo valor no `definir_mesas.py`) |
 | `--fator-tempo N` | 1 | para vídeos em timelapse: 1 s de vídeo = N s reais |
 | `--rastrear` | desligado | IDs persistentes por pessoa (ByteTrack) |
 | `--privacidade` | desligado | pixeliza as pessoas |
@@ -208,6 +205,7 @@ Ficam no bloco `"parametros"` do `config/mesas.json` (todos os tempos em segundo
 |---|---|---|
 | `confianca` | 0.35 | confiança mínima da detecção |
 | `sobreposicao_minima` | 0.30 | fração da pessoa que precisa estar dentro da mesa |
+| `tolerancia_falha_deteccao` | 1.5 | falhas do detector mais curtas que isso não interrompem a presença |
 | `tempo_confirmar_ocupacao` | 3 | presença necessária para OCUPADA |
 | `tempo_confirmar_saida` | 10 | ausência necessária para considerar que saíram |
 | `tempo_confirmar_limpa` | 3 | tempo parecendo limpa para voltar a LIVRE |
@@ -227,37 +225,6 @@ Ficam no bloco `"parametros"` do `config/mesas.json` (todos os tempos em segundo
 - **`saida/resumo_*.json`** e resumo no terminal: ocupações, tempo médio de ocupação, tempo médio até liberar e taxa de ocupação por mesa.
 
 ## 9. Resultados dos testes
-
-### 9.1 Vídeo público (timelapse de restaurante)
-
-Vídeo: [Customers in a minimalist style restaurant (Mixkit)](https://mixkit.co/free-stock-video/customers-in-a-minimalist-style-restaurant-4385/): câmera fixa no alto, 15 s em timelapse. Considerando 1 s de vídeo = 20 s reais, são cerca de 5 minutos de salão. O vídeo não está no repositório (a licença não permite redistribuir): baixe-o pelo link e salve como `videos/mixkit_restaurante.mp4`.
-
-```bash
-python monitorar.py --fonte videos/mixkit_restaurante.mp4 --mesas testes/mixkit/mesas.json --fator-tempo 20 --processamento
-python avaliar.py --eventos saida/eventos_*.csv --gabarito testes/mixkit/gabarito.csv --tolerancia 20
-```
-
-O gabarito foi anotado assistindo ao vídeo quadro a quadro (4 mesas da fileira da direita):
-
-| Evento | Esperado | Detectado | Resultado |
-|---|---|---|---|
-| Mesa 2 ocupada | 00:00 | 00:00 | ✅ |
-| Mesa 3 ocupada | 00:00 | 00:00 | ✅ |
-| Mesa 2 desocupada | ~02:00 | 02:02 | ✅ |
-| Mesa 4 ocupada | ~03:00 | 02:55 | ✅ |
-| Mesa 2 liberada (limpa) | ~02:40 | não detectada* | ❌ |
-| Mesa 1 (sempre vazia) | nenhum evento | nenhum evento | ✅ |
-
-**4 de 5 eventos corretos, nenhum alarme falso, erro médio de 1,7 s, 12,5 FPS em CPU.**
-
-\* A Mesa 2 já começa ocupada, então o sistema nunca viu essa mesa limpa e não tem referência para comparar. Fornecendo uma foto de referência, a liberação foi detectada às 03:56: depois de limpa, a mesa foi arrumada diferente da foto (toalha, sem taças) e só ficou igual quando as taças voltaram. Ou seja, a referência precisa mostrar a mesa **arrumada como o restaurante a deixa**.
-
-O que esse teste ensinou:
-- Com a câmera alinhada com a fileira de mesas, as pessoas de uma mesa tapam parte da mesa de trás. Por isso a verificação de limpeza passou a medir só a parte visível da mesa.
-- Associar a pessoa pela parte de cima da caixa (cabeça e tronco) foi testado e **piorou** o resultado nesse ângulo; a caixa inteira funcionou melhor.
-- Aumentar a entrada do YOLO de 640 para 960 não mudou os eventos e deixou o processamento quase 2× mais lento.
-
-### 9.2 Testes do grupo
 
 Os vídeos gravados pelo grupo não ficam no repositório por causa do tamanho. Baixe-os em _(colocar o link do Google Drive aqui)_ e coloque na pasta `videos/`. As configurações das mesas e os gabaritos de cada vídeo ficam em `testes/`.
 

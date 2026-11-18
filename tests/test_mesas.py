@@ -9,6 +9,7 @@ from salao.config import Parametros
 from salao.detector import Pessoa
 from salao.limpeza import VerificadorLimpeza
 from salao.mesas import Estado, Mesa, associar_pessoas, mascara_poligono
+from salao.video import redimensionar
 
 PARAMS = Parametros(tempo_confirmar_ocupacao=3, tempo_confirmar_saida=10,
                     tempo_confirmar_limpa=3, tempo_presenca_reocupar=30)
@@ -43,6 +44,25 @@ def test_deteccao_falsa_de_um_quadro_nao_ocupa():
     simular(mesa, 0, 5, pessoas=0)
     mesa.atualizar(5, 1, None)          # 1 quadro com detecção falsa
     simular(mesa, 5.5, 20, pessoas=0)
+    assert mesa.estado == Estado.LIVRE
+
+
+def test_detector_intermitente_ainda_ocupa_a_mesa():
+    # Pessoa sentada, mas o detector só a encontra em quadros alternados
+    # (falhas de 1 s, menores que a tolerância de 1,5 s).
+    mesa = nova_mesa()
+    t = 0.0
+    while t < 6:
+        mesa.atualizar(t, 1 if int(t) % 2 == 0 else 0, None)
+        t += 0.5
+    assert mesa.estado == Estado.OCUPADA
+
+
+def test_falha_longa_do_detector_interrompe_a_presenca():
+    mesa = nova_mesa()
+    simular(mesa, 0, 2, pessoas=1)
+    simular(mesa, 2, 4, pessoas=0)       # 2 s sem ver ninguém (> 1,5 s)
+    simular(mesa, 4, 6, pessoas=1)       # recomeça a contar
     assert mesa.estado == Estado.LIVRE
 
 
@@ -155,3 +175,10 @@ def test_verificador_mede_so_a_parte_visivel():
     assert verif.medir(sem_prato, [pessoa]) < 0.01                     # pessoa não conta como sujeira
     tapando_quase_tudo = Pessoa(90, 90, 280, 310)
     assert verif.medir(suja, [tapando_quase_tudo]) is None             # não dá para medir
+
+
+def test_redimensionar_limita_o_maior_lado():
+    deitado = np.zeros((720, 1920, 3), np.uint8)
+    em_pe = np.zeros((1920, 1080, 3), np.uint8)
+    assert redimensionar(deitado, 1280).shape[:2] == (480, 1280)
+    assert redimensionar(em_pe, 1280).shape[:2] == (1280, 720)

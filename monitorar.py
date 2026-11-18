@@ -26,6 +26,7 @@ from salao.limpeza import VerificadorLimpeza
 from salao.mesas import Estado, Mesa, associar_pessoas, mascara_poligono, poligono_para_pixels
 from salao.painel import desenhar
 from salao.relatorio import Relatorio
+from salao.video import redimensionar
 
 
 def argumentos() -> argparse.Namespace:
@@ -33,7 +34,7 @@ def argumentos() -> argparse.Namespace:
     ap.add_argument("--fonte", required=True, help="arquivo de vídeo, índice da webcam (0) ou URL RTSP")
     ap.add_argument("--mesas", default="config/mesas.json", help="arquivo JSON com as mesas")
     ap.add_argument("--modelo", default="yolo11n.pt", help="pesos do YOLO (yolo11n.pt, yolo11s.pt, ...)")
-    ap.add_argument("--largura", type=int, default=1280, help="redimensiona o quadro para esta largura")
+    ap.add_argument("--largura", type=int, default=1280, help="tamanho do maior lado do quadro processado (largura; altura em vídeo vertical)")
     ap.add_argument("--tamanho-imagem", type=int, default=640, help="tamanho de entrada do YOLO")
     ap.add_argument("--fator-tempo", type=float, default=1.0,
                     help="para vídeos em timelapse: 1 s de vídeo equivale a N s reais (só para arquivos)")
@@ -57,13 +58,6 @@ def abrir_fonte(fonte: str) -> tuple[cv2.VideoCapture, bool]:
     if not eh_arquivo and "://" not in fonte:
         sys.exit(f"Fonte não encontrada: {fonte}")
     return cv2.VideoCapture(fonte), eh_arquivo
-
-
-def redimensionar(quadro, largura: int):
-    if largura and quadro.shape[1] != largura:
-        escala = largura / quadro.shape[1]
-        quadro = cv2.resize(quadro, (largura, round(quadro.shape[0] * escala)), interpolation=cv2.INTER_AREA)
-    return quadro
 
 
 def main() -> None:
@@ -91,7 +85,7 @@ def main() -> None:
             mascara_poligono(poligono, largura, altura, p.fator_area_limpeza), p))
 
     if cfg.referencia and cfg.referencia.exists():
-        ref = redimensionar(cv2.imread(str(cfg.referencia)), largura)
+        ref = redimensionar(cv2.imread(str(cfg.referencia)), args.largura)
         if ref.shape[:2] == (altura, largura):
             for v in verificadores:
                 v.definir_referencia(ref)
@@ -157,9 +151,10 @@ def main() -> None:
                 ultimo_quadro = agora
 
             # 5) Saída visual
-            tela = desenhar(quadro, mesas, pessoas, destino, t, fps_proc, verificadores,
-                            mostrar_proc, args.privacidade, pausado)
+            # Vídeo salvo: resolução do quadro
             if args.salvar and not pausado:
+                tela = desenhar(quadro, mesas, pessoas, destino, t, fps_proc, verificadores,
+                                mostrar_proc, args.privacidade, pausado)
                 if gravador is None:
                     Path(args.salvar).parent.mkdir(parents=True, exist_ok=True)
                     gravador = cv2.VideoWriter(args.salvar, cv2.VideoWriter_fourcc(*"mp4v"),
@@ -171,6 +166,14 @@ def main() -> None:
                     print(f"  quadro {indice}  t={t:.0f}s  {fps_proc:.1f} FPS", flush=True)
                 continue
 
+            # Janela: desenha no tamanho exato da janela, para não esticar a imagem
+            try:
+                _, _, larg_janela, alt_janela = cv2.getWindowImageRect("Gerente de Salao")
+            except cv2.error:
+                larg_janela = alt_janela = -1
+            tamanho = (larg_janela, alt_janela) if larg_janela > 200 and alt_janela > 200 else None
+            tela = desenhar(quadro, mesas, pessoas, destino, t, fps_proc, verificadores,
+                            mostrar_proc, args.privacidade, pausado, tamanho_saida=tamanho)
             cv2.imshow("Gerente de Salao", tela)
             if not janela_pronta:  # depois do 1º quadro a janela existe
                 cv2.waitKey(1)
