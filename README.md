@@ -87,7 +87,8 @@ stateDiagram-v2
 │   ├── mesas.py          # máquina de estados e associação pessoa → mesa
 │   ├── limpeza.py        # verificação de limpeza (processamento de imagem)
 │   ├── painel.py         # desenho das mesas e do painel
-│   └── relatorio.py      # CSV de eventos e resumo
+│   ├── relatorio.py      # CSV de eventos e resumo
+│   └── janela.py         # janela maximizada / tela cheia
 ├── config/               # arquivos de mesas (JSON) e imagens de referência
 ├── testes/               # gabaritos dos vídeos de teste
 │   └── mixkit/           # mesas e gabarito do teste com vídeo público
@@ -160,6 +161,7 @@ python monitorar.py --fonte videos/salao.mp4 --mesas config/mesas.json --salvar 
 |---|---|
 | `q` / `ESC` | sair (gera o resumo) |
 | `p` | pausar |
+| `f` | alterna entre tela cheia e janela maximizada |
 | `v` | liga/desliga a visualização do processamento de imagem (pixels diferentes da referência em magenta + índice de sujeira) |
 | `1`–`9` | marca a mesa N como limpa manualmente |
 
@@ -172,6 +174,7 @@ python monitorar.py --fonte videos/salao.mp4 --mesas config/mesas.json --salvar 
 | `--rastrear` | desligado | IDs persistentes por pessoa (ByteTrack) |
 | `--privacidade` | desligado | pixeliza as pessoas |
 | `--salvar` | — | salva o vídeo anotado |
+| `--tela-cheia` | desligado | abre em tela cheia (por padrão a janela abre maximizada) |
 | `--sem-janela` | desligado | roda sem interface (servidor) |
 
 ### Passo 3: avaliar a precisão (testes)
@@ -227,10 +230,10 @@ Ficam no bloco `"parametros"` do `config/mesas.json` (todos os tempos em segundo
 
 ### 9.1 Vídeo público (timelapse de restaurante)
 
-Vídeo: [Customers in a minimalist style restaurant (Mixkit)](https://mixkit.co/free-stock-video/customers-in-a-minimalist-style-restaurant-4385/): câmera fixa no alto, 15 s em timelapse. Considerando 1 s de vídeo = 20 s reais, são cerca de 5 minutos de salão. O vídeo não está no repositório (a licença não permite redistribuir); baixe-o em `videos/`.
+Vídeo: [Customers in a minimalist style restaurant (Mixkit)](https://mixkit.co/free-stock-video/customers-in-a-minimalist-style-restaurant-4385/): câmera fixa no alto, 15 s em timelapse. Considerando 1 s de vídeo = 20 s reais, são cerca de 5 minutos de salão. O vídeo não está no repositório (a licença não permite redistribuir): baixe-o pelo link e salve como `videos/mixkit_restaurante.mp4`.
 
 ```bash
-python monitorar.py --fonte videos/mixkit-customers-in-a-minimalist-style-restaurant-4385-hd-ready.mp4 --mesas testes/mixkit/mesas.json --fator-tempo 20 --processamento
+python monitorar.py --fonte videos/mixkit_restaurante.mp4 --mesas testes/mixkit/mesas.json --fator-tempo 20 --processamento
 python avaliar.py --eventos saida/eventos_*.csv --gabarito testes/mixkit/gabarito.csv --tolerancia 20
 ```
 

@@ -26,6 +26,7 @@ import cv2
 import numpy as np
 
 from salao.config import ConfigMesa, Parametros, carregar_config, salvar_config
+from salao.janela import maximizar
 
 JANELA = "Definir mesas"
 AJUDA = ["Clique: ponto | Dir.: desfaz ponto | ENTER/n: fecha mesa",
@@ -80,6 +81,7 @@ def main() -> None:
     cv2.namedWindow(JANELA, cv2.WINDOW_NORMAL)
     cv2.setMouseCallback(JANELA, mouse)
 
+    maximizada = False
     while True:
         tela = quadro.copy()
         for i, pts in enumerate(mesas):
@@ -95,6 +97,10 @@ def main() -> None:
             cv2.putText(tela, linha, (10, 24 + i * 22), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (0, 0, 0), 3)
             cv2.putText(tela, linha, (10, 24 + i * 22), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (255, 255, 255), 1)
         cv2.imshow(JANELA, tela)
+        if not maximizada:
+            cv2.waitKey(1)
+            maximizar(JANELA)
+            maximizada = True
 
         tecla = cv2.waitKey(30) & 0xFF
         if tecla in (ord("q"), 27):

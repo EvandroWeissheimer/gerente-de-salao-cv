@@ -200,7 +200,7 @@ def _painel(altura: int, mesas: list[Mesa], t: float, fps: float, piscar: bool) 
     L, M = LARGURA_PAINEL, 18  # largura e margem
 
     # Altura dos cartões: modo compacto se não couber
-    topo_cartoes, rodape = 250, 46
+    topo_cartoes, rodape = 250, 52
     alertas = sum(1 for m in mesas if m.alerta(t))
     normal = len(mesas) * 72 + alertas * 26
     compacto = topo_cartoes + normal + rodape > altura
@@ -282,7 +282,7 @@ def _painel(altura: int, mesas: list[Mesa], t: float, fps: float, piscar: bool) 
 
     # Rodapé com atalhos
     d.line((M, altura - rodape + 6, L - M, altura - rodape + 6), fill=BORDA, width=1)
-    d.text((M, altura - 26), "Q sair   ·   P pausar   ·   V processamento   ·   1–9 limpa",
-           font=fonte(11), fill=SUAVE, anchor="lm")
+    d.text((M, altura - 30), "Q sair   ·   P pausar   ·   F tela cheia", font=fonte(11), fill=SUAVE, anchor="lm")
+    d.text((M, altura - 13), "V processamento   ·   1–9 marcar mesa limpa", font=fonte(11), fill=SUAVE, anchor="lm")
 
     return cv2.cvtColor(np.array(im), cv2.COLOR_RGB2BGR)

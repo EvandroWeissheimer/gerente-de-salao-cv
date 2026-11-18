@@ -21,6 +21,7 @@ import cv2
 
 from salao.config import carregar_config
 from salao.detector import DetectorPessoas
+from salao.janela import tela_cheia as alternar_tela_cheia
 from salao.limpeza import VerificadorLimpeza
 from salao.mesas import Estado, Mesa, associar_pessoas, mascara_poligono, poligono_para_pixels
 from salao.painel import desenhar
@@ -41,6 +42,7 @@ def argumentos() -> argparse.Namespace:
     ap.add_argument("--privacidade", action="store_true", help="pixeliza as pessoas no vídeo exibido/salvo")
     ap.add_argument("--processamento", action="store_true", help="começa mostrando a diferença de limpeza")
     ap.add_argument("--salvar", help="salva o vídeo anotado (ex.: saida/demo.mp4)")
+    ap.add_argument("--tela-cheia", action="store_true", help="abre em tela cheia; sem isso a janela abre maximizada (tecla F alterna)")
     ap.add_argument("--sem-janela", action="store_true", help="não abre janela (servidor/sem monitor)")
     ap.add_argument("--dispositivo", help="cpu, 0 (GPU), mps ...")
     ap.add_argument("--saida", default="saida", help="pasta dos relatórios")
@@ -112,6 +114,8 @@ def main() -> None:
     tempos_proc = []
     ultimo_quadro = None
 
+    tela_cheia = args.tela_cheia
+    janela_pronta = False
     if not args.sem_janela:
         cv2.namedWindow("Gerente de Salao", cv2.WINDOW_NORMAL)
 
@@ -168,6 +172,10 @@ def main() -> None:
                 continue
 
             cv2.imshow("Gerente de Salao", tela)
+            if not janela_pronta:  # depois do 1º quadro a janela existe
+                cv2.waitKey(1)
+                alternar_tela_cheia("Gerente de Salao", tela_cheia)  # tela cheia ou maximizada
+                janela_pronta = True
             tecla = cv2.waitKey(1 if not pausado else 50) & 0xFF
             if tecla in (ord("q"), 27):
                 break
@@ -175,6 +183,9 @@ def main() -> None:
                 pausado = not pausado
             elif tecla == ord("v"):
                 mostrar_proc = not mostrar_proc
+            elif tecla == ord("f"):
+                tela_cheia = not tela_cheia
+                alternar_tela_cheia("Gerente de Salao", tela_cheia)
             elif ord("1") <= tecla <= ord("9"):
                 n = tecla - ord("0")
                 for mesa in mesas:
